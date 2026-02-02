@@ -1,19 +1,21 @@
 from __future__ import print_function
 
-import astropy.units as u
-import datetime
-import json
-import os, glob2
-import numpy as np
-import pandas as pd
+import os, sys
+import getopt
+import argparse
+import glob2
+import json, simplejson
 import pickle
-import pytz
 import re
-import requests, json, simplejson
-import sys, getopt, argparse
-import webbrowser as wb
+import requests
+import datetime
+import pytz
 import xlsxwriter
 
+import numpy as np
+import pandas as pd
+import webbrowser as wb
+import astropy.units as u
 from astropy import constants as const
 from astropy.cosmology import FlatLambdaCDM
 from astropy.io import ascii, fits
@@ -25,16 +27,17 @@ from time import sleep
 from tqdm import tqdm
 from urllib.error import HTTPError
 
-if 'info.info' not in os.listdir(os.getcwd()): # Retrieves API key info and location of SNID
+from func import *
+from snid import *
+from hosts import *
+#from zooniverse import *
+
+# Retrieves API key info and location of SNID
+if 'info.info' not in os.listdir(os.getcwd()):
     print('No info file in directory! "info.info" has been generated, enter in the location of SNID, and API information.')
     with open('info.info', 'w') as f:
         f.write('SNID loc: \nSuperfit loc: \nFritz API key: \nTNS API Key: \nTNS Bot ID: \nZooniverse username: \nZoonviverse Password: ')
     exit()
-
-from func import *
-from snid import *
-from hosts import *
-from zooniverse import *
 
 # Create data directory if one does not exist
 test = os.listdir(os.getcwd())
@@ -42,7 +45,6 @@ if 'data' not in test:
     os.mkdir('data')
 
 print('Welcome to the master script!')
-
 entered = input('Enter in the earliest date you want to check classifications or saves (YYYY-MM-DD) or \'y\' for yesterday at midnight: ')
 
 if entered == 'Y' or entered == 'y':
@@ -50,8 +52,9 @@ if entered == 'Y' or entered == 'y':
 else:
     startd = datetime.datetime.strptime(entered, '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc)
 
-if input('Check for new Zooniverse classifications? [y/n] ') == 'y':
-    pull_class(startd)
+# Commented out Zooniverse code
+#if input('Check for new Zooniverse classifications? [y/n] ') == 'y':
+#    pull_class(startd)
 
 print(bcolors.OKGREEN + 'Continuing...' + bcolors.ENDC)
 
@@ -60,7 +63,6 @@ if 'RCF_sources.ascii' not in test:
     get_source_file('RCF_sources', since)
 else:
     dl = input('Download new list of RCF sources? ([y]/n) ')
-
     if dl == 'y':
         since = input('Enter earliest date to download sources from (YYYY-MM-DD) or enter nothing to set it to 6 months ago: ')
         get_source_file('RCF_sources', since)
